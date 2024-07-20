@@ -529,6 +529,115 @@ void VulkanCommandRecorder::resolveTexture(const TextureResolveOptions &options)
                       vkRegions.data());
 }
 
+void VulkanCommandRecorder::generateMipMaps(const GenerateMipMapsOptions &options)
+{
+    // Transition base miplevel to TransferSrcOptimal
+    if (options.layout != TextureLayout::TransferSrcOptimal)
+        textureMemoryBarrier(TextureMemoryBarrierOptions{
+                .srcStages = PipelineStageFlagBit::TransferBit,
+                .srcMask = AccessFlagBit::None,
+                .dstStages = PipelineStageFlagBit::TransferBit,
+                .dstMask = AccessFlagBit::TransferReadBit,
+                .oldLayout = options.layout,
+                .newLayout = TextureLayout::TransferSrcOptimal,
+                .texture = options.texture,
+                .range = {
+                        .aspectMask = TextureAspectFlagBits::ColorBit,
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                },
+        });
+
+    // Transition all other miplevels to TransferDstOptimal
+    textureMemoryBarrier(TextureMemoryBarrierOptions{
+            .srcStages = PipelineStageFlagBit::TransferBit,
+            .srcMask = AccessFlagBit::None,
+            .dstStages = PipelineStageFlagBit::TransferBit,
+            .dstMask = AccessFlagBit::TransferWriteBit,
+            .oldLayout = TextureLayout::Undefined,
+            .newLayout = TextureLayout::TransferDstOptimal,
+            .texture = options.texture,
+            .range = {
+                    .aspectMask = TextureAspectFlagBits::ColorBit,
+                    .baseMipLevel = 1,
+                    .levelCount = options.mipLevels - 1,
+            },
+    });
+
+    auto blitOptions = TextureBlitOptions{
+            .srcTexture = options.texture,
+            .srcLayout = TextureLayout::TransferSrcOptimal,
+            .dstTexture = options.texture,
+            .dstLayout = TextureLayout::TransferDstOptimal,
+            .regions = {
+                    {
+                            .srcSubresource = {
+                                    .aspectMask = TextureAspectFlagBits::ColorBit,
+                            },
+                            .dstSubresource = {
+                                    .aspectMask = TextureAspectFlagBits::ColorBit,
+                            },
+                    },
+            },
+            .scalingFilter = FilterMode::Linear,
+    };
+
+    uint32_t prevLevelWidth = options.extent.width;
+    uint32_t prevLevelHeight = options.extent.height;
+    uint32_t prevLevelDepth = options.extent.depth;
+    for (uint32_t mipLevel = 1; mipLevel < options.mipLevels; ++mipLevel) {
+        const uint32_t levelWidth = std::max(prevLevelWidth >> 1, 1u);
+        const uint32_t levelHeight = std::max(prevLevelHeight >> 1, 1u);
+        const uint32_t levelDepth = std::max(prevLevelDepth >> 1, 1u);
+
+        TextureBlitRegion &region = blitOptions.regions[0];
+        region.srcSubresource.mipLevel = mipLevel - 1;
+        region.srcExtent = {
+                .width = prevLevelWidth,
+                .height = prevLevelHeight,
+                .depth = 1,
+        };
+        region.dstSubresource.mipLevel = mipLevel;
+        region.dstExtent = {
+                .width = levelWidth,
+                .height = levelHeight,
+                .depth = 1,
+        };
+
+        // Blit previous miplevel into current miplevel
+        for (uint32_t layer = 0; layer < options.layerCount; ++layer) {
+            for (uint32_t slice = 0; slice < levelDepth; ++slice) {
+                region.srcSubresource.baseArrayLayer = layer;
+                region.srcOffset.z = static_cast<int32_t>(
+                    prevLevelDepth > levelDepth ? slice << 1 : slice);
+                region.dstSubresource.baseArrayLayer = layer;
+                region.dstOffset.z = static_cast<int32_t>(slice);
+                blitTexture(blitOptions);
+            }
+        }
+
+        // Transition miplevel to TransferSrcOptimal
+        textureMemoryBarrier(TextureMemoryBarrierOptions{
+                .srcStages = PipelineStageFlagBit::TransferBit,
+                .srcMask = AccessFlagBit::None,
+                .dstStages = PipelineStageFlagBit::TransferBit,
+                .dstMask = AccessFlagBit::TransferReadBit,
+                .oldLayout = TextureLayout::TransferDstOptimal,
+                .newLayout = TextureLayout::TransferSrcOptimal,
+                .texture = options.texture,
+                .range = {
+                        .aspectMask = TextureAspectFlagBits::ColorBit,
+                        .baseMipLevel = mipLevel,
+                        .levelCount = 1,
+                },
+        });
+
+        prevLevelWidth = levelWidth;
+        prevLevelHeight = levelHeight;
+        prevLevelDepth = levelDepth;
+    }
+}
+
 void VulkanCommandRecorder::buildAccelerationStructures(const BuildAccelerationStructureOptions &options)
 {
     auto vulkanDevice = vulkanResourceManager->getDevice(deviceHandle);

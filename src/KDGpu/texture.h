@@ -20,6 +20,7 @@ namespace KDGpu {
 struct Device_t;
 struct Texture_t;
 struct TextureOptions;
+struct GenerateMipMapsOptions;
 class Device;
 class Queue;
 class GraphicsApi;
@@ -67,6 +68,8 @@ public:
     SubresourceLayout getSubresourceLayout(const TextureSubresource &subresource = TextureSubresource()) const;
 
     bool generateMipMaps(Device &device, Queue &transferQueue, const TextureOptions &options, TextureLayout oldLayout);
+    bool generateMipMaps(Device &device, Queue &transferQueue, 
+        Format format, TextureTiling tiling, const GenerateMipMapsOptions &options);
 
     MemoryHandle externalMemoryHandle() const;
 

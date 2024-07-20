@@ -29,6 +29,7 @@ struct TextureToBufferCopy;
 struct TextureToTextureCopy;
 struct TextureBlitOptions;
 struct TextureResolveOptions;
+struct GenerateMipMapsOptions;
 struct BuildAccelerationStructureOptions;
 
 /**
@@ -52,6 +53,7 @@ struct ApiCommandRecorder {
     virtual void textureMemoryBarrier(const TextureMemoryBarrierOptions &options) = 0;
     virtual void executeSecondaryCommandBuffer(const Handle<CommandBuffer_t> &secondaryCommandBuffer) = 0;
     virtual void resolveTexture(const TextureResolveOptions &options) = 0;
+    virtual void generateMipMaps(const GenerateMipMapsOptions &options) = 0;
     virtual void buildAccelerationStructures(const BuildAccelerationStructureOptions &options) = 0;
     virtual Handle<CommandBuffer_t> finish() = 0;
 };

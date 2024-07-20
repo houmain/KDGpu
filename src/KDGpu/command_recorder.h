@@ -110,6 +110,14 @@ struct TextureResolveOptions {
     std::vector<TextureResolveRegion> regions;
 };
 
+struct GenerateMipMapsOptions {
+    Handle<Texture_t> texture;
+    TextureLayout layout{ TextureLayout::ColorAttachmentOptimal };
+    Extent3D extent{};
+    uint32_t mipLevels{};
+    uint32_t layerCount{ 1 };
+};
+
 struct BufferUpdate {
     Handle<Buffer_t> dstBuffer;
     DeviceSize dstOffset{ 0 };
@@ -177,6 +185,7 @@ public:
     void textureMemoryBarrier(const TextureMemoryBarrierOptions &options);
     void executeSecondaryCommandBuffer(const Handle<CommandBuffer_t> &secondaryCommandBuffer);
     void resolveTexture(const TextureResolveOptions &options);
+    void generateMipMaps(const GenerateMipMapsOptions &options);
     void buildAccelerationStructures(const BuildAccelerationStructureOptions &options);
 
     CommandBuffer finish();
