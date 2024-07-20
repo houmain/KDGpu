@@ -1910,7 +1910,7 @@ Handle<RenderPassCommandRecorder_t> VulkanResourceManager::createRenderPassComma
     for (const auto &colorAttachment : options.colorAttachments) {
         attachmentKey.addAttachmentView(colorAttachment.view);
         // Include resolve attachments if using MSAA.
-        if (usingMsaa)
+        if (usingMsaa && colorAttachment.resolveView.isValid())
             attachmentKey.addAttachmentView(colorAttachment.resolveView);
     }
     if (options.depthStencilAttachment.view.isValid()) {
@@ -2012,7 +2012,7 @@ Handle<RenderPassCommandRecorder_t> VulkanResourceManager::createRenderPassComma
         vkClearValues[clearIdx++] = vkClearValue;
 
         // Include resolve clear color again if using MSAA. Must match number of attachments.
-        if (usingMsaa)
+        if (usingMsaa && colorAttachment.resolveView.isValid())
             vkClearValues[clearIdx++] = vkClearValue;
     }
 
@@ -2156,7 +2156,7 @@ void VulkanResourceManager::fillColorAttachmnents(std::vector<VkAttachmentRefere
             attachments.emplace_back(colorAttachment);
 
             // If using multisampling, then for each color attachment we need a resolve attachment
-            if (usingMultisampling) {
+            if (usingMultisampling && renderTarget.resolveView.isValid()) {
                 const KDGpu::Format resolveColorFormat = formatFromTextureView(renderTarget.resolveView);
 
                 VkAttachmentDescription2 resolveAttachment = {};
@@ -2540,7 +2540,7 @@ Handle<Framebuffer_t> VulkanResourceManager::createFramebuffer(const Handle<Devi
     for (const auto &colorAttachment : options.colorAttachments) {
         attachments.push_back(colorAttachment.view);
         // Include resolve attachments if using MSAA.
-        if (usingMsaa)
+        if (usingMsaa && colorAttachment.resolveView.isValid())
             attachments.push_back(colorAttachment.resolveView);
     }
     if (options.depthStencilAttachment.view.isValid()) {
