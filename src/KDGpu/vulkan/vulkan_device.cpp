@@ -224,7 +224,7 @@ std::vector<QueueDescription> VulkanDevice::getQueues(ResourceManager *resourceM
                                                       const std::vector<QueueRequest> &queueRequests,
                                                       std::span<AdapterQueueType> queueTypes)
 {
-    auto *vulkanResourceManager = dynamic_cast<VulkanResourceManager *>(resourceManager);
+    auto *vulkanResourceManager = static_cast<VulkanResourceManager *>(resourceManager);
     assert(vulkanResourceManager);
 
     uint32_t queueCount = 0;
