@@ -14,6 +14,7 @@
 #include <KDGpu/utils/logging.h>
 
 #include <vector>
+#include <fmt/ranges.h>
 
 namespace KDGpu {
 
