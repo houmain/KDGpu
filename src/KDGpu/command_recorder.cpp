@@ -168,6 +168,12 @@ void CommandRecorder::resolveTexture(const TextureResolveOptions &options)
     apiCommandRecorder->resolveTexture(options);
 }
 
+void CommandRecorder::generateMipMaps(const GenerateMipMapsOptions &options)
+{
+    auto apiCommandRecorder = m_api->resourceManager()->getCommandRecorder(m_commandRecorder);
+    apiCommandRecorder->generateMipMaps(options);
+}
+
 void CommandRecorder::buildAccelerationStructures(const BuildAccelerationStructureOptions &options)
 {
     auto apiCommandRecorder = m_api->resourceManager()->getCommandRecorder(m_commandRecorder);
