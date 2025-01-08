@@ -90,125 +90,30 @@ SubresourceLayout Texture::getSubresourceLayout(const TextureSubresource &subres
 
 bool Texture::generateMipMaps(Device &device, Queue &transferQueue, const TextureOptions &options, TextureLayout oldLayout, TextureLayout newLayout)
 {
+    return generateMipMaps(device, transferQueue, options.format, options.tiling, 
+        GenerateMipMapsOptions{
+                .texture = m_texture,
+                .layout = oldLayout,
+                .newLayout = newLayout,
+                .extent = options.extent,
+                .mipLevels = options.mipLevels,
+                .layerCount = options.arrayLayers,
+        });
+}
+
+bool Texture::generateMipMaps(Device &device, Queue &transferQueue, 
+        Format format, TextureTiling tiling, const GenerateMipMapsOptions &options)
+{
     const Adapter *adapter = device.adapter();
     if (!adapter)
         return false;
 
-    if (!adapter->supportsBlitting(options.format, options.tiling))
+    if (!adapter->supportsBlitting(format, tiling))
         return false;
 
     CommandRecorder commandRecorder = device.createCommandRecorder();
 
-    // Transition base miplevel to TransferSrcOptimal
-    if (oldLayout != TextureLayout::TransferSrcOptimal)
-        commandRecorder.textureMemoryBarrier(TextureMemoryBarrierOptions{
-                .srcStages = PipelineStageFlagBit::TransferBit,
-                .srcMask = AccessFlagBit::None,
-                .dstStages = PipelineStageFlagBit::TransferBit,
-                .dstMask = AccessFlagBit::TransferReadBit,
-                .oldLayout = oldLayout,
-                .newLayout = TextureLayout::TransferSrcOptimal,
-                .texture = m_texture,
-                .range = {
-                        .aspectMask = TextureAspectFlagBits::ColorBit,
-                        .baseMipLevel = 0,
-                        .levelCount = 1,
-                },
-        });
-
-    for (uint32_t mipLevel = 1; mipLevel < options.mipLevels; ++mipLevel) {
-
-        // Transition miplevel to TransforDstOptimal
-        commandRecorder.textureMemoryBarrier(TextureMemoryBarrierOptions{
-                .srcStages = PipelineStageFlagBit::TransferBit,
-                .srcMask = AccessFlagBit::None,
-                .dstStages = PipelineStageFlagBit::TransferBit,
-                .dstMask = AccessFlagBit::TransferWriteBit,
-                .oldLayout = TextureLayout::Undefined,
-                .newLayout = TextureLayout::TransferDstOptimal,
-                .texture = m_texture,
-                .range = {
-                        .aspectMask = TextureAspectFlagBits::ColorBit,
-                        .baseMipLevel = mipLevel,
-                        .levelCount = 1,
-                },
-        });
-
-        // Blit main mip level into sub level
-        commandRecorder.blitTexture(TextureBlitOptions{
-                .srcTexture = m_texture,
-                .srcLayout = TextureLayout::TransferSrcOptimal,
-                .dstTexture = m_texture,
-                .dstLayout = TextureLayout::TransferDstOptimal,
-                .regions = {
-                        {
-                                .srcSubresource = {
-                                        .aspectMask = TextureAspectFlagBits::ColorBit,
-                                        .mipLevel = 0,
-                                },
-                                .srcOffset = {
-                                        .x = 0,
-                                        .y = 0,
-                                        .z = 0,
-                                },
-                                .srcExtent = {
-                                        .width = options.extent.width,
-                                        .height = options.extent.height,
-                                        .depth = 1,
-                                },
-                                .dstSubresource = {
-                                        .aspectMask = TextureAspectFlagBits::ColorBit,
-                                        .mipLevel = mipLevel,
-                                },
-                                .dstOffset = {
-                                        .x = 0,
-                                        .y = 0,
-                                        .z = 0,
-                                },
-                                .dstExtent = {
-                                        .width = (options.extent.width >> mipLevel),
-                                        .height = (options.extent.height >> mipLevel),
-                                        .depth = 1,
-                                },
-                        },
-                },
-                .scalingFilter = FilterMode::Linear,
-        });
-
-        // Transition miplevel to newLayout
-        if (newLayout != TextureLayout::TransferDstOptimal && newLayout != TextureLayout::Undefined)
-            commandRecorder.textureMemoryBarrier(TextureMemoryBarrierOptions{
-                    .srcStages = PipelineStageFlagBit::TransferBit,
-                    .srcMask = AccessFlagBit::TransferWriteBit,
-                    .dstStages = PipelineStageFlagBit::TransferBit,
-                    .dstMask = AccessFlagBit::TransferReadBit,
-                    .oldLayout = TextureLayout::TransferDstOptimal,
-                    .newLayout = newLayout,
-                    .texture = m_texture,
-                    .range = {
-                            .aspectMask = TextureAspectFlagBits::ColorBit,
-                            .baseMipLevel = mipLevel,
-                            .levelCount = 1,
-                    },
-            });
-    }
-
-    // Transition base miplevel to newLayout
-    if (newLayout != TextureLayout::TransferSrcOptimal && newLayout != TextureLayout::Undefined)
-        commandRecorder.textureMemoryBarrier(TextureMemoryBarrierOptions{
-                .srcStages = PipelineStageFlagBit::TransferBit,
-                .srcMask = AccessFlagBit::TransferReadBit,
-                .dstStages = PipelineStageFlagBit::TransferBit,
-                .dstMask = AccessFlagBit::None,
-                .oldLayout = TextureLayout::TransferSrcOptimal,
-                .newLayout = newLayout,
-                .texture = m_texture,
-                .range = {
-                        .aspectMask = TextureAspectFlagBits::ColorBit,
-                        .baseMipLevel = 0,
-                        .levelCount = 1,
-                },
-        });
+    commandRecorder.generateMipMaps(options);
 
     CommandBuffer commandBuffer = commandRecorder.finish();
 
