@@ -20,6 +20,7 @@ namespace KDGpu {
 struct Device_t;
 struct Texture_t;
 struct TextureOptions;
+struct GenerateMipMapsOptions;
 class Device;
 class Queue;
 
@@ -144,6 +145,8 @@ public:
      * @return true when successful
      */
     bool generateMipMaps(Device &device, Queue &transferQueue, const TextureOptions &options, TextureLayout oldLayout, TextureLayout newLayout = TextureLayout::Undefined);
+    bool generateMipMaps(Device &device, Queue &transferQueue, 
+        Format format, TextureTiling tiling, const GenerateMipMapsOptions &options);
 
     MemoryHandle externalMemoryHandle() const;
 

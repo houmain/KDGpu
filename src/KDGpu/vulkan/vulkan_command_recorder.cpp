@@ -531,6 +531,122 @@ void VulkanCommandRecorder::resolveTexture(const TextureResolveOptions &options)
                       vkRegions.data());
 }
 
+void VulkanCommandRecorder::generateMipMaps(const GenerateMipMapsOptions &options)
+{
+    // Transition base miplevel to TransferSrcOptimal
+    if (options.layout != TextureLayout::TransferSrcOptimal)
+        textureMemoryBarrier(TextureMemoryBarrierOptions{
+                .srcStages = PipelineStageFlagBit::TransferBit,
+                .srcMask = AccessFlagBit::None,
+                .dstStages = PipelineStageFlagBit::TransferBit,
+                .dstMask = AccessFlagBit::TransferReadBit,
+                .oldLayout = options.layout,
+                .newLayout = TextureLayout::TransferSrcOptimal,
+                .texture = options.texture,
+                .range = {
+                        .aspectMask = TextureAspectFlagBits::ColorBit,
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                },
+        });
+
+    for (uint32_t mipLevel = 1; mipLevel < options.mipLevels; ++mipLevel) {
+
+        // Transition miplevel to TransforDstOptimal
+        textureMemoryBarrier(TextureMemoryBarrierOptions{
+                .srcStages = PipelineStageFlagBit::TransferBit,
+                .srcMask = AccessFlagBit::None,
+                .dstStages = PipelineStageFlagBit::TransferBit,
+                .dstMask = AccessFlagBit::TransferWriteBit,
+                .oldLayout = TextureLayout::Undefined,
+                .newLayout = TextureLayout::TransferDstOptimal,
+                .texture = options.texture,
+                .range = {
+                        .aspectMask = TextureAspectFlagBits::ColorBit,
+                        .baseMipLevel = mipLevel,
+                        .levelCount = 1,
+                },
+        });
+
+        // Blit main mip level into sub level
+        blitTexture(TextureBlitOptions{
+                .srcTexture = options.texture,
+                .srcLayout = TextureLayout::TransferSrcOptimal,
+                .dstTexture = options.texture,
+                .dstLayout = TextureLayout::TransferDstOptimal,
+                .regions = {
+                        {
+                                .srcSubresource = {
+                                        .aspectMask = TextureAspectFlagBits::ColorBit,
+                                        .mipLevel = 0,
+                                },
+                                .srcOffset = {
+                                        .x = 0,
+                                        .y = 0,
+                                        .z = 0,
+                                },
+                                .srcExtent = {
+                                        .width = options.extent.width,
+                                        .height = options.extent.height,
+                                        .depth = 1,
+                                },
+                                .dstSubresource = {
+                                        .aspectMask = TextureAspectFlagBits::ColorBit,
+                                        .mipLevel = mipLevel,
+                                },
+                                .dstOffset = {
+                                        .x = 0,
+                                        .y = 0,
+                                        .z = 0,
+                                },
+                                .dstExtent = {
+                                        .width = (options.extent.width >> mipLevel),
+                                        .height = (options.extent.height >> mipLevel),
+                                        .depth = 1,
+                                },
+                        },
+                },
+                .scalingFilter = FilterMode::Linear,
+        });
+
+        // Transition miplevel to newLayout
+        if (options.newLayout != TextureLayout::TransferDstOptimal && 
+                options.newLayout != TextureLayout::Undefined)
+            textureMemoryBarrier(TextureMemoryBarrierOptions{
+                    .srcStages = PipelineStageFlagBit::TransferBit,
+                    .srcMask = AccessFlagBit::TransferWriteBit,
+                    .dstStages = PipelineStageFlagBit::TransferBit,
+                    .dstMask = AccessFlagBit::TransferReadBit,
+                    .oldLayout = TextureLayout::TransferDstOptimal,
+                    .newLayout = options.newLayout,
+                    .texture = options.texture,
+                    .range = {
+                            .aspectMask = TextureAspectFlagBits::ColorBit,
+                            .baseMipLevel = mipLevel,
+                            .levelCount = 1,
+                    },
+            });
+    }
+
+    // Transition base miplevel to newLayout
+    if (options.newLayout != TextureLayout::TransferSrcOptimal && 
+            options.newLayout != TextureLayout::Undefined)
+        textureMemoryBarrier(TextureMemoryBarrierOptions{
+                .srcStages = PipelineStageFlagBit::TransferBit,
+                .srcMask = AccessFlagBit::TransferReadBit,
+                .dstStages = PipelineStageFlagBit::TransferBit,
+                .dstMask = AccessFlagBit::None,
+                .oldLayout = TextureLayout::TransferSrcOptimal,
+                .newLayout = options.newLayout,
+                .texture = options.texture,
+                .range = {
+                        .aspectMask = TextureAspectFlagBits::ColorBit,
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                },
+        });
+}
+
 // NOLINTBEGIN(readability-function-cognitive-complexity)
 void VulkanCommandRecorder::buildAccelerationStructures(const BuildAccelerationStructureOptions &options) const
 {

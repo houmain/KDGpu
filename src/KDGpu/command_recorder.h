@@ -110,6 +110,15 @@ struct TextureResolveOptions {
     std::vector<TextureResolveRegion> regions;
 };
 
+struct GenerateMipMapsOptions {
+    Handle<Texture_t> texture;
+    TextureLayout layout{ TextureLayout::ColorAttachmentOptimal };
+    TextureLayout newLayout{ TextureLayout::Undefined };
+    Extent3D extent{};
+    uint32_t mipLevels{};
+    uint32_t layerCount{ 1 };
+};
+
 struct BufferUpdate {
     Handle<Buffer_t> dstBuffer;
     DeviceSize dstOffset{ 0 };
@@ -162,6 +171,7 @@ public:
     RenderPassCommandRecorder beginRenderPass(const RenderPassCommandRecorderOptions &options) const;
     RenderPassCommandRecorder beginRenderPass(const RenderPassCommandRecorderWithRenderPassOptions &options) const;
     RenderPassCommandRecorder beginRenderPass(const RenderPassCommandRecorderWithDynamicRenderingOptions &options) const;
+    void generateMipMaps(const GenerateMipMapsOptions &options);
 
     [[nodiscard]] ComputePassCommandRecorder beginComputePass(const ComputePassCommandRecorderOptions &options = {}) const;
     [[nodiscard]] RayTracingPassCommandRecorder beginRayTracingPass(const RayTracingPassCommandRecorderOptions &options = {}) const;
