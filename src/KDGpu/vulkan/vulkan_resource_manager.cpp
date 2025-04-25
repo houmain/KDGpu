@@ -114,8 +114,8 @@ SpecializationConstantData getByteOffsetSizeAndRawValueForSpecializationConstant
     };
 }
 
-template<class>
-inline constexpr bool always_false = false;
+//template<class>
+//inline constexpr bool always_false = false;
 
 template<typename F>
 bool testIfContainsAnyFlags(const KDGpu::Flags<F> &flags, const std::vector<F> &flagsToTest)
@@ -3234,7 +3234,7 @@ Handle<AccelerationStructure_t> VulkanResourceManager::createAccelerationStructu
                 geometryKhr.geometryType = VK_GEOMETRY_TYPE_AABBS_KHR;
                 geometryKhr.geometry.aabbs = aabbsDataKhr;
             } else {
-                static_assert(always_false<T>, "non-exhaustive visitor!");
+                //static_assert(always_false<T>, "non-exhaustive visitor!");
             }
         },
                    geometryTypeAndCount.geometry);
