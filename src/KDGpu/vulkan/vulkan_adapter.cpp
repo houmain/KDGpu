@@ -89,6 +89,10 @@ AdapterProperties VulkanAdapter::queryAdapterProperties()
     deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
     chainCurrent = reinterpret_cast<VkBaseOutStructure *>(&deviceProperties2);
 
+    VkPhysicalDeviceIDProperties deviceIDProperties{};
+    deviceIDProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
+    addToChain(&deviceIDProperties);
+
     VkPhysicalDeviceMultiviewProperties multiViewProperties{};
     multiViewProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES;
     addToChain(&multiViewProperties);
@@ -139,6 +143,42 @@ AdapterProperties VulkanAdapter::queryAdapterProperties()
         .deviceID = deviceProperties.deviceID,
         .deviceType = vkPhysicalDeviceTypeToAdapterDeviceType(deviceProperties.deviceType),
         .deviceName = deviceProperties.deviceName,
+        .deviceUUID = {
+                deviceIDProperties.deviceUUID[0],
+                deviceIDProperties.deviceUUID[1],
+                deviceIDProperties.deviceUUID[2],
+                deviceIDProperties.deviceUUID[3],
+                deviceIDProperties.deviceUUID[4],
+                deviceIDProperties.deviceUUID[5],
+                deviceIDProperties.deviceUUID[6],
+                deviceIDProperties.deviceUUID[7],
+                deviceIDProperties.deviceUUID[8],
+                deviceIDProperties.deviceUUID[9],
+                deviceIDProperties.deviceUUID[10],
+                deviceIDProperties.deviceUUID[11],
+                deviceIDProperties.deviceUUID[12],
+                deviceIDProperties.deviceUUID[13],
+                deviceIDProperties.deviceUUID[14],
+                deviceIDProperties.deviceUUID[15],
+        },
+        .driverUUID = {
+                deviceIDProperties.driverUUID[0],
+                deviceIDProperties.driverUUID[1],
+                deviceIDProperties.driverUUID[2],
+                deviceIDProperties.driverUUID[3],
+                deviceIDProperties.driverUUID[4],
+                deviceIDProperties.driverUUID[5],
+                deviceIDProperties.driverUUID[6],
+                deviceIDProperties.driverUUID[7],
+                deviceIDProperties.driverUUID[8],
+                deviceIDProperties.driverUUID[9],
+                deviceIDProperties.driverUUID[10],
+                deviceIDProperties.driverUUID[11],
+                deviceIDProperties.driverUUID[12],
+                deviceIDProperties.driverUUID[13],
+                deviceIDProperties.driverUUID[14],
+                deviceIDProperties.driverUUID[15],
+        },
         .pipelineCacheUUID = {
                 deviceProperties.pipelineCacheUUID[0],
                 deviceProperties.pipelineCacheUUID[1],
