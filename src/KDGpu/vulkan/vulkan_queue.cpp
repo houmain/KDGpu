@@ -12,6 +12,7 @@
 
 #include <KDGpu/queue.h>
 #include <KDGpu/vulkan/vulkan_resource_manager.h>
+#include <KDGpu/vulkan/vulkan_formatters.h>
 
 namespace KDGpu {
 
@@ -93,6 +94,9 @@ void VulkanQueue::submit(const SubmitOptions &options)
     // vkResetFences(renderer()->vulkanDevice()->device(), 1, inFlightFences);
 
     VkResult result = vkQueueSubmit(queue, 1, &submitInfo, vkFenceToSignal);
+    if (result != VK_SUCCESS) {
+        SPDLOG_LOGGER_ERROR(Logger::logger(), "Error when submitting queue: {}", result);
+    }
 }
 
 namespace {
