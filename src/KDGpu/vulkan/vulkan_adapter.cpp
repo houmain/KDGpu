@@ -105,6 +105,12 @@ AdapterProperties VulkanAdapter::queryAdapterProperties()
     descriptorIndexingProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES;
     addToChain(&descriptorIndexingProperties);
 
+#if defined(VK_KHR_acceleration_structure)
+    VkPhysicalDeviceAccelerationStructurePropertiesKHR accelerationStructureProperties{};
+    accelerationStructureProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR;
+    addToChain(&accelerationStructureProperties);
+#endif
+
 #if defined(VK_KHR_ray_tracing_pipeline)
     VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingProperties{};
     rayTracingProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR;
@@ -366,6 +372,18 @@ AdapterProperties VulkanAdapter::queryAdapterProperties()
                 .maxBindGroupUpdateAfterBindSampledImages = descriptorIndexingProperties.maxDescriptorSetUpdateAfterBindSampledImages,
                 .maxBindGroupUpdateAfterBindStorageImages = descriptorIndexingProperties.maxDescriptorSetUpdateAfterBindStorageImages,
                 .maxBindGroupUpdateAfterBindInputAttachments = descriptorIndexingProperties.maxDescriptorSetUpdateAfterBindInputAttachments,
+        },
+        .accelerationStructureProperties = {
+#if defined(VK_KHR_acceleration_structure)
+                .maxGeometryCount = accelerationStructureProperties.maxGeometryCount,
+                .maxInstanceCount = accelerationStructureProperties.maxInstanceCount,
+                .maxPrimitiveCount = accelerationStructureProperties.maxPrimitiveCount,
+                .maxPerStageDescriptorAccelerationStructures = accelerationStructureProperties.maxPerStageDescriptorAccelerationStructures,
+                .maxPerStageDescriptorUpdateAfterBindAccelerationStructures = accelerationStructureProperties.maxPerStageDescriptorUpdateAfterBindAccelerationStructures,
+                .maxDescriptorSetAccelerationStructures = accelerationStructureProperties.maxDescriptorSetAccelerationStructures,
+                .maxDescriptorSetUpdateAfterBindAccelerationStructures = accelerationStructureProperties.maxDescriptorSetUpdateAfterBindAccelerationStructures,
+                .minAccelerationStructureScratchOffsetAlignment = accelerationStructureProperties.minAccelerationStructureScratchOffsetAlignment,
+#endif
         },
         .rayTracingProperties = {
 #if defined(VK_KHR_ray_tracing_pipeline)

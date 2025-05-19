@@ -192,6 +192,17 @@ struct BindGroupIndexingProperties {
     uint32_t maxBindGroupUpdateAfterBindInputAttachments;
 };
 
+struct AccelerationStructureProperties {
+    uint64_t maxGeometryCount;
+    uint64_t maxInstanceCount;
+    uint64_t maxPrimitiveCount;
+    uint32_t maxPerStageDescriptorAccelerationStructures;
+    uint32_t maxPerStageDescriptorUpdateAfterBindAccelerationStructures;
+    uint32_t maxDescriptorSetAccelerationStructures;
+    uint32_t maxDescriptorSetUpdateAfterBindAccelerationStructures;
+    uint32_t minAccelerationStructureScratchOffsetAlignment;
+};
+
 struct RayTracingProperties {
     uint32_t shaderGroupHandleSize;
     uint32_t maxRayRecursionDepth;
@@ -261,6 +272,7 @@ struct AdapterProperties {
     AdapterMultiViewProperties multiViewProperties;
     AdapterDepthStencilResolveProperties depthResolveProperties;
     BindGroupIndexingProperties bindGroupIndexingProperties;
+    AccelerationStructureProperties accelerationStructureProperties;
     RayTracingProperties rayTracingProperties;
     MeshShaderProperties meshShaderProperties;
     HostImageCopyProperties hostImageCopyProperties;
