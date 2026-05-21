@@ -266,6 +266,7 @@ struct AdapterProperties {
     std::string deviceName;
     uint8_t deviceUUID[UuidSize];
     uint8_t driverUUID[UuidSize];
+    uint8_t deviceLUID[8];
     uint8_t pipelineCacheUUID[UuidSize];
     AdapterLimits limits;
     AdapterSparseProperties sparseProperties;

@@ -185,6 +185,16 @@ AdapterProperties VulkanAdapter::queryAdapterProperties()
                 deviceIDProperties.driverUUID[14],
                 deviceIDProperties.driverUUID[15],
         },
+        .deviceLUID = {
+                deviceIDProperties.deviceLUID[0],
+                deviceIDProperties.deviceLUID[1],
+                deviceIDProperties.deviceLUID[2],
+                deviceIDProperties.deviceLUID[3],
+                deviceIDProperties.deviceLUID[4],
+                deviceIDProperties.deviceLUID[5],
+                deviceIDProperties.deviceLUID[6],
+                deviceIDProperties.deviceLUID[7],
+        },
         .pipelineCacheUUID = {
                 deviceProperties.pipelineCacheUUID[0],
                 deviceProperties.pipelineCacheUUID[1],
